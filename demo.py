@@ -101,7 +101,7 @@ args = [
     '--output_dir', os.path.join(MODEL_FOLDER, 'output_model'),
     '--seed', '42',
     '--max_seq_length', '128',
-    '--train_batch_size', '512',
+    '--train_batch_size', '256',
     '--gradient_accumulation_steps', '8',
     '--eval_batch_size', '64',
     '--learning_rate', '1e-5',
@@ -109,7 +109,7 @@ args = [
     '--valid_step', '5000',
     '--warmup_steps', '4000',
     '--normalize_data', 'true',
-    '--fp16', 'true',
+    '--fp16', 'false',
     '--lr_schedule', 'noam',
     '--loss_scale', '0.0',
     '--no_token_id', 'true',
@@ -126,3 +126,4 @@ with open('./output.log', 'wb') as f:
         sys.stdout.write(line.decode(sys.stdout.encoding)) 
         f.write(line)
 logger.info('Done!\n')
+
