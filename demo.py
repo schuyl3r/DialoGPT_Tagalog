@@ -7,8 +7,8 @@
 import os
 import sys
 import logging
-import dload
 import wget
+import zipfile
 from functools import partial
 
 from demo_utils import download_model_folder
@@ -44,7 +44,10 @@ if os.path.exists(MODEL_FOLDER):
     os.makedirs(MODEL_FOLDER, exist_ok=True)
 else:
     os.makedirs(MODEL_FOLDER)
-    dload.save_unzip("https://s3.us-east-2.amazonaws.com/blaisecruz.com/pretrained-models/gpt2-tagalog.zip", "DialoGPT_Tagalog/models/small")
+    url = 'https://s3.us-east-2.amazonaws.com/blaisecruz.com/pretrained-models/gpt2-tagalog.zip'
+    wget.download(url, os.path.join(PROJECT_FOLDER, 'models'))
+    with zipfile.ZipFile(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'), 'r') as zip_ref:
+        zip_ref.extractall(os.path.join(PROJECT_FOLDER, 'models', 'small'))
 
 #########################################################################
 # Download Model
