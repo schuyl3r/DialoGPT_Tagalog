@@ -71,7 +71,7 @@ parser.add_argument("--warmup_proportion", type=float, default=0.1)
 parser.add_argument("--warmup_steps", type=int, default=16000)
 
 parser.add_argument("--normalize_data", type=boolean_string, default=True)
-parser.add_argument("--fp16", type=boolean_string, default=False)
+parser.add_argument("--fp16", type=boolean_string, default=True)
 parser.add_argument("--lr_schedule", type=str,
                     choices=['noam', 'noamwd', 'BERT', 'None'], default='noam')
 parser.add_argument("--loss_scale", type=float, default=0)
@@ -216,7 +216,7 @@ optimizer_grouped_parameters = [
 if args.fp16:
     logger.info('in fp16, using FusedAdam')
     try:
-        from apex.fp16_utils.fp16_optimizer import FP16_Optimizer
+        from apex.optimizers import FP16_Optimizer
         from apex.optimizers import FusedAdam
     except ImportError:
         raise ImportError(
@@ -225,7 +225,8 @@ if args.fp16:
 
     optimizer = FusedAdam(optimizer_grouped_parameters,
                           lr=args.learning_rate,
-                          bias_correction=False)
+                          bias_correction=False,
+                          max_grad_norm=1.0)
     if args.loss_scale == 0:
         optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True,
                                    verbose=False)
@@ -233,13 +234,9 @@ if args.fp16:
         optimizer = FP16_Optimizer(optimizer,
                                    static_loss_scale=args.loss_scale,
                                    verbose=False)
-    
 else:
-    logger.info('setting opt_level to O1')
     optimizer = Adam(optimizer_grouped_parameters, args.learning_rate,
                      max_grad_norm=1.0)
-    from apex import amp
-    model, optimizer = amp.initialize(model, optimizer, opt_level="O1")
 
 #########################################################################
 # Training !
@@ -290,9 +287,7 @@ while True:
         if args.fp16:
             optimizer.backward(loss)
         else:
-            with amp.scale_loss(loss, optimizer) as scaled_loss:
-                scaled_loss.backward()
-#             loss.backward()
+            loss.backward()
 
         tr_loss += float(loss.item()) * (args.train_batch_size / input_ids.shape[0])
         nb_tr_examples += input_ids.size(0)
@@ -389,4 +384,3 @@ if args.local_rank == -1 or get_rank() == 0:
         pbar.close()
     train_logger.close()
     eval_logger.close()
-

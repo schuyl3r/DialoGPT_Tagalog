@@ -7,6 +7,8 @@
 import os
 import sys
 import logging
+import dload
+import wget
 from functools import partial
 
 from demo_utils import download_model_folder
@@ -42,6 +44,7 @@ if os.path.exists(MODEL_FOLDER):
     os.makedirs(MODEL_FOLDER, exist_ok=True)
 else:
     os.makedirs(MODEL_FOLDER)
+    dload.save_unzip("https://s3.us-east-2.amazonaws.com/blaisecruz.com/pretrained-models/gpt2-tagalog.zip", "DialoGPT_Tagalog/models/small")
 
 #########################################################################
 # Download Model
@@ -64,7 +67,10 @@ if dargs.data == 'dummy':
     cmd = 'bash prepare4db.sh'
     ret = sp.run(cmd.split(' '), stdout=sp.PIPE, stderr=sp.STDOUT, cwd=DATA_FOLDER)
 elif dargs.data == 'small':
-    myCmd = os.popen('cd reddit_extractor; make -j 8; cd ..').read()
+    logger.info('Downloading train.ysv file\n')
+    url = 'https://drive.google.com/uc?id=1ho7n66S1Q-ue34odGcKZUfoHxu2M9shp'
+    wget.download(url, 'DialoGPT_Tagalog/data/train.tsv')
+    # myCmd = os.popen('cd reddit_extractor; make -j 8; cd ..').read()
 elif dargs.data == 'full':
     myCmd = os.popen('cd reddit_extractor; SIZE=full make -j 8; cd ..').read()
 else:
@@ -101,7 +107,7 @@ args = [
     '--output_dir', os.path.join(MODEL_FOLDER, 'output_model'),
     '--seed', '42',
     '--max_seq_length', '128',
-    '--train_batch_size', '256',
+    '--train_batch_size', '512',
     '--gradient_accumulation_steps', '8',
     '--eval_batch_size', '64',
     '--learning_rate', '1e-5',
@@ -109,7 +115,7 @@ args = [
     '--valid_step', '5000',
     '--warmup_steps', '4000',
     '--normalize_data', 'true',
-    '--fp16', 'false',
+    '--fp16', 'true',
     '--lr_schedule', 'noam',
     '--loss_scale', '0.0',
     '--no_token_id', 'true',
@@ -126,4 +132,3 @@ with open('./output.log', 'wb') as f:
         sys.stdout.write(line.decode(sys.stdout.encoding)) 
         f.write(line)
 logger.info('Done!\n')
-
