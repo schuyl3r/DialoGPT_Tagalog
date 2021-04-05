@@ -45,9 +45,25 @@ if os.path.exists(MODEL_FOLDER):
 else:
     os.makedirs(MODEL_FOLDER)
     url = 'https://s3.us-east-2.amazonaws.com/blaisecruz.com/pretrained-models/gpt2-tagalog.zip'
-    urllib.request.urlretrieve(url, os.path.join(PROJECT_FOLDER, 'models', 'small.zip'))
-    with zipfile.ZipFile(os.path.join(PROJECT_FOLDER, 'models', 'small.zip'), 'r') as zip_ref:
+    urllib.request.urlretrieve(url, os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'))
+    with zipfile.ZipFile(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'), 'r') as zip_ref:
         zip_ref.extractall(os.path.join(PROJECT_FOLDER, 'models'))
+
+        unpacked = open(os.path.join(PROJECT_FOLDER, 'models', 'small','config.json'), 'wb')
+        unpacked.write(zip_ref.read('gpt2-tagalog/config.json'))
+        unpacked.close()
+
+        unpacked = open(os.path.join(PROJECT_FOLDER, 'models', 'small','merges.txt'), 'wb')
+        unpacked.write(zip_ref.read('gpt2-tagalog/merges.txt'))
+        unpacked.close()
+
+        unpacked = open(os.path.join(PROJECT_FOLDER, 'models', 'small','vocab.json'), 'wb')
+        unpacked.write(zip_ref.read('gpt2-tagalog/vocab.json'))
+        unpacked.close()
+
+        unpacked = open(os.path.join(PROJECT_FOLDER, 'models', 'small','pytorch_model.bin'), 'wb')
+        unpacked.write(zip_ref.read('gpt2-tagalog/pytorch_model.bin'))
+        unpacked.close()
 
 #########################################################################
 # Download Model
