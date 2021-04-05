@@ -9,6 +9,7 @@ import sys
 import logging
 import urllib.request
 import zipfile
+import json
 from functools import partial
 
 from demo_utils import download_model_folder
@@ -47,21 +48,20 @@ else:
     url = 'https://s3.us-east-2.amazonaws.com/blaisecruz.com/pretrained-models/gpt2-tagalog.zip'
     urllib.request.urlretrieve(url, os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'))
     with zipfile.ZipFile(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'), 'r') as zip_ref:
-        zip_ref.extractall(os.path.join(PROJECT_FOLDER, 'models'))
 
-        unpacked = open(os.path.join(PROJECT_FOLDER, 'models', 'small','config.json'), 'wb')
-        unpacked.write(zip_ref.read('gpt2-tagalog/config.json'))
+        with open(os.path.join(PROJECT_FOLDER, 'models', 'small','config.json'), 'w') as outfile:
+            data = json.loads((zip_ref.read('gpt2-tagalog/config.json')).decode("utf-8"))
+            json.dump(data, outfile)
+
+        with open(os.path.join(PROJECT_FOLDER, 'models', 'small', 'vocab.json'), 'w') as outfile:
+            data = json.loads((zip_ref.read('gpt2-tagalog/vocab.json')).decode("utf-8"))
+            json.dump(data, outfile)
+            
+        unpacked = open(os.path.join(PROJECT_FOLDER, 'models', 'small', 'merges.txt'), 'w')
+        unpacked.write((zip_ref.read('gpt2-tagalog/merges.txt')).decode("utf-8"))
         unpacked.close()
 
-        unpacked = open(os.path.join(PROJECT_FOLDER, 'models', 'small','merges.txt'), 'wb')
-        unpacked.write(zip_ref.read('gpt2-tagalog/merges.txt'))
-        unpacked.close()
-
-        unpacked = open(os.path.join(PROJECT_FOLDER, 'models', 'small','vocab.json'), 'wb')
-        unpacked.write(zip_ref.read('gpt2-tagalog/vocab.json'))
-        unpacked.close()
-
-        unpacked = open(os.path.join(PROJECT_FOLDER, 'models', 'small','pytorch_model.bin'), 'wb')
+        unpacked = open(os.path.join(PROJECT_FOLDER, 'models', 'small', 'pytorch_model.bin'), 'wb')
         unpacked.write(zip_ref.read('gpt2-tagalog/pytorch_model.bin'))
         unpacked.close()
 
@@ -86,7 +86,7 @@ if dargs.data == 'dummy':
     cmd = 'bash prepare4db.sh'
     ret = sp.run(cmd.split(' '), stdout=sp.PIPE, stderr=sp.STDOUT, cwd=DATA_FOLDER)
 elif dargs.data == 'small':
-    logger.info('Downloading train.ysv file\n')
+    logger.info('Downloading train.tsv file\n')
     url = 'https://drive.google.com/uc?id=1ho7n66S1Q-ue34odGcKZUfoHxu2M9shp'
     urllib.request.urlretrieve(url, os.path.join(PROJECT_FOLDER, 'data', 'train.tsv'))
     # myCmd = os.popen('cd reddit_extractor; make -j 8; cd ..').read()
