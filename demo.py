@@ -7,7 +7,7 @@
 import os
 import sys
 import logging
-import wget
+import urllib.request
 import zipfile
 from functools import partial
 
@@ -45,7 +45,7 @@ if os.path.exists(MODEL_FOLDER):
 else:
     os.makedirs(MODEL_FOLDER)
     url = 'https://s3.us-east-2.amazonaws.com/blaisecruz.com/pretrained-models/gpt2-tagalog.zip'
-    wget.download(url, os.path.join(PROJECT_FOLDER, 'models'))
+    urllib.request.urlretrieve(url, os.path.join(PROJECT_FOLDER, 'models'))
     with zipfile.ZipFile(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'), 'r') as zip_ref:
         zip_ref.extractall(os.path.join(PROJECT_FOLDER, 'models', 'small'))
 
@@ -72,7 +72,7 @@ if dargs.data == 'dummy':
 elif dargs.data == 'small':
     logger.info('Downloading train.ysv file\n')
     url = 'https://drive.google.com/uc?id=1ho7n66S1Q-ue34odGcKZUfoHxu2M9shp'
-    wget.download(url, 'DialoGPT_Tagalog/data/train.tsv')
+    urllib.request.urlretrieve(url, 'DialoGPT_Tagalog/data/train.tsv')
     # myCmd = os.popen('cd reddit_extractor; make -j 8; cd ..').read()
 elif dargs.data == 'full':
     myCmd = os.popen('cd reddit_extractor; SIZE=full make -j 8; cd ..').read()
