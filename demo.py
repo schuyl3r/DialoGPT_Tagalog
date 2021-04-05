@@ -10,6 +10,7 @@ import logging
 import urllib.request
 import zipfile
 import json
+import shutil
 from functools import partial
 
 from demo_utils import download_model_folder
@@ -49,22 +50,11 @@ else:
     url = 'https://s3.us-east-2.amazonaws.com/blaisecruz.com/pretrained-models/gpt2-tagalog.zip'
     urllib.request.urlretrieve(url, os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'))
     with zipfile.ZipFile(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'), 'r') as zip_ref:
-
-        with open(os.path.join(PROJECT_FOLDER, 'models', 'small','config.json'), 'w') as outfile:
-            data = json.loads((zip_ref.read('gpt2-tagalog/config.json')).decode("utf-8"))
-            json.dump(data, outfile)
-
-        with open(os.path.join(PROJECT_FOLDER, 'models', 'small', 'vocab.json'), 'w') as outfile:
-            data = json.loads((zip_ref.read('gpt2-tagalog/vocab.json')).decode("utf-8"))
-            json.dump(data, outfile)
-            
-        unpacked = open(os.path.join(PROJECT_FOLDER, 'models', 'small', 'merges.txt'), 'w')
-        unpacked.write((zip_ref.read('gpt2-tagalog/merges.txt')).decode("utf-8"))
-        unpacked.close()
-
-        unpacked = open(os.path.join(PROJECT_FOLDER, 'models', 'small', 'pytorch_model.bin'), 'wb')
-        unpacked.write(zip_ref.read('gpt2-tagalog/pytorch_model.bin'))
-        unpacked.close()
+        zip_ref.extractall(os.path.join(PROJECT_FOLDER, 'models'))
+    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'pytorch_model.bin'), os.path.join(PROJECT_FOLDER, 'models', 'pytorch_model.bin'))
+    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'config.json'), os.path.join(PROJECT_FOLDER, 'models', 'config.json'))
+    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'vocab.json'), os.path.join(PROJECT_FOLDER, 'models', 'vocab.json'))
+    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'merges.txt'), os.path.join(PROJECT_FOLDER, 'models', 'merges.txt'))
 
 #########################################################################
 # Download Model
