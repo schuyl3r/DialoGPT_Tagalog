@@ -45,9 +45,9 @@ if os.path.exists(MODEL_FOLDER):
 else:
     os.makedirs(MODEL_FOLDER)
     url = 'https://s3.us-east-2.amazonaws.com/blaisecruz.com/pretrained-models/gpt2-tagalog.zip'
-    urllib.request.urlretrieve(url, os.path.join(PROJECT_FOLDER, 'models'))
-    with zipfile.ZipFile(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'), 'r') as zip_ref:
-        zip_ref.extractall(os.path.join(PROJECT_FOLDER, 'models', 'small'))
+    urllib.request.urlretrieve(url, 'DialoGPT_Tagalog/models/gpt2-tagalog.zip')
+    with zipfile.ZipFile('DialoGPT_Tagalog/models/gpt2-tagalog.zip', 'r') as zip_ref:
+        zip_ref.extractall('DialoGPT_Tagalog/models/small')
 
 #########################################################################
 # Download Model
