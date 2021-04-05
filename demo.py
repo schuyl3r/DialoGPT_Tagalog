@@ -51,10 +51,10 @@ else:
     urllib.request.urlretrieve(url, os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'))
     with zipfile.ZipFile(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'), 'r') as zip_ref:
         zip_ref.extractall(os.path.join(PROJECT_FOLDER, 'models'))
-    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'pytorch_model.bin'), os.path.join(PROJECT_FOLDER, 'models', 'pytorch_model.bin'))
-    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'config.json'), os.path.join(PROJECT_FOLDER, 'models', 'config.json'))
-    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'vocab.json'), os.path.join(PROJECT_FOLDER, 'models', 'vocab.json'))
-    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'merges.txt'), os.path.join(PROJECT_FOLDER, 'models', 'merges.txt'))
+    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'pytorch_model.bin'), os.path.join(PROJECT_FOLDER, 'models', 'small', 'pytorch_model.bin'))
+    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'config.json'), os.path.join(PROJECT_FOLDER, 'models', 'small', 'config.json'))
+    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'vocab.json'), os.path.join(PROJECT_FOLDER, 'models', 'small', 'vocab.json'))
+    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'merges.txt'), os.path.join(PROJECT_FOLDER, 'models', 'small', 'merges.txt'))
 
 #########################################################################
 # Download Model
