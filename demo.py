@@ -45,6 +45,7 @@ if os.path.exists(MODEL_FOLDER):
     os.makedirs(MODEL_FOLDER, exist_ok=True)
 else:
     os.makedirs(MODEL_FOLDER)
+    os.makedirs(os.path.join(MODEL_FOLDER, 'small'))
     url = 'https://s3.us-east-2.amazonaws.com/blaisecruz.com/pretrained-models/gpt2-tagalog.zip'
     urllib.request.urlretrieve(url, os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'))
     with zipfile.ZipFile(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'), 'r') as zip_ref:
