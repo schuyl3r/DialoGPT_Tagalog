@@ -36,7 +36,7 @@ def load_model(model, checkpoint, args, verbose=False):
                     for s in model_state_dict.keys())):
             logger.info('loading transfomer only')
             start_model = model.transformer
-        start_model.load_state_dict(model_state_dict)
+        start_model.load_state_dict(model_state_dict, strict = False)
 
     if args.fp16:
         logger.info('in fp16, model.half() activated')
