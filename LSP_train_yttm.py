@@ -20,12 +20,14 @@ import numpy as np
 from os.path import join
 from torch.distributed import get_rank, get_world_size
 
-from lsp_model import GPT2LMHeadModel, GPT2Tokenizer, GPT2Config, Adam
+from lsp_model import GPT2LMHeadModel, GPT2Config, Adam
+from lsp_model import RubertaTokenizer
 from gpt2_training.train_utils import load_model, boolean_string, set_lr, get_eval_list_same_length
 from gpt2_training.eval_utils import eval_model_loss
 
 from data_loader import BucketingDataLoader, DynamicBatchingLoader, DistributedBucketingDataLoader
 
+import mpu
 
 from gpt2_training.distributed import all_reduce_and_rescale_tensors, all_gather_list
 
@@ -46,6 +48,10 @@ EVAL_STEP = 100000
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_name_or_path', type=str,
                     help='pretrained model name or path to local checkpoint')
+parser.add_argument('--tokenizer-path', type=str,
+                    help='Path to vocabulary')
+parser.add_argument('--config-path', type=str,
+                    help='Path to config')
 parser.add_argument("--seed", type=int, default=42)
 parser.add_argument("--max_seq_length", type=int, default=128)
 
@@ -165,10 +171,9 @@ for a in args_dict:
 #########################################################################
 # Prepare Data Set
 ##########################################################################
-enc = GPT2Tokenizer.from_pretrained(args.model_name_or_path)
+enc = RubertaTokenizer(vocab_file=args.tokenizer_path)
 
-config = GPT2Config.from_json_file(
-    join(args.model_name_or_path, 'config.json'))
+config = GPT2Config.from_json_file(args.config_path)
 
 if args.local_rank == -1:
     train_dataloader = BucketingDataLoader(args.train_input_file,
@@ -191,6 +196,9 @@ eval_dataloader_gen = get_eval_list_same_length(
 #########################################################################
 # Prepare Model and Optimizer
 ##########################################################################
+
+mpu.initialize_model_parallel(1)
+
 model = load_model(GPT2LMHeadModel(config), args.init_checkpoint,
                    args, verbose=True)
 if args.local_rank != -1:
@@ -216,17 +224,23 @@ optimizer_grouped_parameters = [
 if args.fp16:
     logger.info('in fp16, using FusedAdam')
     try:
-        from apex.optimizers import FP16_Optimizer
+        #from apex.contrib.optimizers import FP16_Optimizer
+        from fp16 import FP16_Optimizer
         from apex.optimizers import FusedAdam
     except ImportError:
         raise ImportError(
             "Please install apex from https://www.github.com/nvidia/apex "
             "to use distributed and fp16 training.")
 
+    # Add model parallel attribute if it is not set.
+    for param_group in optimizer_grouped_parameters:
+        for param in param_group['params']:
+            if not hasattr(param, 'model_parallel'):
+                param.model_parallel = False
+
     optimizer = FusedAdam(optimizer_grouped_parameters,
                           lr=args.learning_rate,
-                          bias_correction=False,
-                          max_grad_norm=1.0)
+                          bias_correction=False)
     if args.loss_scale == 0:
         optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True,
                                    verbose=False)
@@ -255,8 +269,6 @@ epoch = 0
 
 if args.continue_from:
     global_step = args.continue_from
-    step = global_step*2 - 1
-
 
 if args.local_rank != -1:
     n_gpu = 1

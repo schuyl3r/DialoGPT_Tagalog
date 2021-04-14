@@ -7,10 +7,6 @@
 import os
 import sys
 import logging
-import urllib.request
-import zipfile
-import json
-import shutil
 from functools import partial
 
 from demo_utils import download_model_folder
@@ -46,15 +42,6 @@ if os.path.exists(MODEL_FOLDER):
     os.makedirs(MODEL_FOLDER, exist_ok=True)
 else:
     os.makedirs(MODEL_FOLDER)
-    os.makedirs(os.path.join(MODEL_FOLDER, 'small'))
-    url = 'https://s3.us-east-2.amazonaws.com/blaisecruz.com/pretrained-models/gpt2-tagalog.zip'
-    urllib.request.urlretrieve(url, os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'))
-    with zipfile.ZipFile(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog.zip'), 'r') as zip_ref:
-        zip_ref.extractall(os.path.join(PROJECT_FOLDER, 'models'))
-    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'pytorch_model.bin'), os.path.join(PROJECT_FOLDER, 'models', 'small', 'pytorch_model.bin'))
-    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'config.json'), os.path.join(PROJECT_FOLDER, 'models', 'small', 'config.json'))
-    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'vocab.json'), os.path.join(PROJECT_FOLDER, 'models', 'small', 'vocab.json'))
-    shutil.copy(os.path.join(PROJECT_FOLDER, 'models', 'gpt2-tagalog', 'merges.txt'), os.path.join(PROJECT_FOLDER, 'models', 'small', 'merges.txt'))
 
 #########################################################################
 # Download Model
@@ -77,14 +64,19 @@ if dargs.data == 'dummy':
     cmd = 'bash prepare4db.sh'
     ret = sp.run(cmd.split(' '), stdout=sp.PIPE, stderr=sp.STDOUT, cwd=DATA_FOLDER)
 elif dargs.data == 'small':
-    logger.info('Downloading train.tsv file\n')
-    url = 'https://drive.google.com/uc?id=1ho7n66S1Q-ue34odGcKZUfoHxu2M9shp'
-    urllib.request.urlretrieve(url, os.path.join(PROJECT_FOLDER, 'data', 'train.tsv'))
-    # myCmd = os.popen('cd reddit_extractor; make -j 8; cd ..').read()
+    myCmd = os.popen('cd reddit_extractor; make -j 8; cd ..').read()
+    cmd = 'gzip -d ./train.tsv.gz'
+    ret = sp.run(cmd.split(' '), stdout=sp.PIPE, stderr=sp.STDOUT, cwd=DATA_FOLDER)
 elif dargs.data == 'full':
     myCmd = os.popen('cd reddit_extractor; SIZE=full make -j 8; cd ..').read()
+    cmd = 'gzip -d ./train.tsv.gz'
+    ret = sp.run(cmd.split(' '), stdout=sp.PIPE, stderr=sp.STDOUT, cwd=DATA_FOLDER)
 else:
     raise ValueError('you need to implement your own data type, or use either dummy, small, or full')
+
+if ret.returncode != 0:
+    print(f'error occurred, {ret.stdout}')
+    sys.exit(ret.returncode)
 
 logger.info('Preparing Data...')
 data_path = os.path.join(DATA_FOLDER, 'train.tsv')
@@ -125,7 +117,7 @@ args = [
     '--valid_step', '5000',
     '--warmup_steps', '4000',
     '--normalize_data', 'true',
-    '--fp16', 'false',
+    '--fp16', 'true',
     '--lr_schedule', 'noam',
     '--loss_scale', '0.0',
     '--no_token_id', 'true',

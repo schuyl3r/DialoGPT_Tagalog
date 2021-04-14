@@ -10,7 +10,7 @@ from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
-EOS_ID = 50256
+EOS_ID = 50000
 
 
 def cal_BLEU_4(generated, reference, is_corpus=False):

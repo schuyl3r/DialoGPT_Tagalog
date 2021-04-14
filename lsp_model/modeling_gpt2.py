@@ -25,8 +25,10 @@ import torch
 import torch.nn as nn
 from torch.nn import CrossEntropyLoss
 
-from pytorch_pretrained_bert.modeling_gpt2 import GPT2PreTrainedModel, GPT2Model, GPT2LMHead, Attention, Block, \
+from transformers_dev.modeling_gpt2 import GPT2PreTrainedModel, GPT2Model, GPT2LMHead, Attention, Block, \
     LayerNorm, MLP
+
+import mpu
 
 logger = logging.getLogger(__name__)
 
@@ -68,12 +70,40 @@ class GPT2ModelFP16(GPT2Model):
 
         self.apply(self.init_weights)
 
+#{
+#  "attn_pdrop": 0.1,
+#  "embd_pdrop": 0.1,
+#  "initializer_range": 0.02,
+#  "layer_norm_epsilon": 1e-05,
+#  "n_ctx": 1024,
+#  "n_embd": 1024,
+#  "n_head": 16,
+#  "n_layer": 24,
+#  "n_positions": 1024,
+#  "n_special": 0,
+#  "predict_special_tokens": true,
+#  "resid_pdrop": 0.1,
+#  "vocab_size": 50048
+#}
+def configure_transformer(config):
+    transformer = mpu.GPT2ParallelTransformer(config.n_layer,
+                                              config.n_positions,
+                                              config.n_head,
+                                              config.attn_pdrop,
+                                              config.resid_pdrop,
+                                              True,
+                                              1)
+    return transformer
 
 class GPT2LMHeadModel(GPT2PreTrainedModel):
     def __init__(self, config):
         super(GPT2LMHeadModel, self).__init__(config)
         self.transformer = GPT2ModelFP16(config)
         self.lm_head = GPT2LMHead(self.transformer.wte.weight, config)
+        #self.transformer = configure_transformer(config)
+        #print(config)
+        #print(self.transformer)
+        #self.lm_head = GPT2LMHead(self.transformer.word_embeddings.weight, config)
         self.apply(self.init_weights)
 
     def set_tied(self):

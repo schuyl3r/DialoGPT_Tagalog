@@ -181,14 +181,15 @@ def convert_examples_to_features_dynamic(examples, tokenizer,
             if len(context_id) > input_ids_len - max_seq_length:
                 # cut context from beginning if length of context + response is too long
                 # and len of context is long enough to cut
-                context_id = context_id[input_ids_len - max_seq_length:]
+                context_id = context_id[:-(input_ids_len - max_seq_length)]
             else:
                 # cut response from end if length of context + response is too long
                 # and len of response is long enough to cut
                 # if no response is available, discard the data
                 if max_seq_length-len(context_id)-2 < 0:
-                    return None
-                response_id = response_id[:max_seq_length-len(context_id)-2]
+                    context_id = context_id[:-(input_ids_len - int(max_seq_length / 2))]
+                    #return None
+                response_id = response_id[len(context_id)+2-max_seq_length:]
 
         input_ids = context_id + [end_of_text_id] + response_id + [end_of_text_id]
 
@@ -266,6 +267,7 @@ class DynamicBatchingLoader(object):
                                                dtype=torch.long)
                                   for f in features],
                                  batch_first=True, padding_value=0)
+
         position_ids = pad_sequence(
             [torch.tensor(f.choices_features['position_ids'], dtype=torch.long)
              for f in features],

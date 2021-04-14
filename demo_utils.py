@@ -4,7 +4,7 @@
 import os
 import logging
 
-from pytorch_pretrained_bert.file_utils import http_get
+from transformers_dev.file_utils import http_get
 
 
 logger = logging.getLogger(__name__)
@@ -70,10 +70,10 @@ def download_model_folder(model_size, dataset=None, from_scratch=None, DATA_FOLD
     assert DATA_FOLDER is not None, 'DATA_FOLDER cannot be None'
     assert model_size in ['small', 'medium', 'large'], 'model size should be one of \'small\', \'medium\' or \'large\''
     target_folder = os.path.join(DATA_FOLDER, model_size)
-    # download_file(CONFIG_FILE[model_size], target_folder)
-    # download_file(VOCAB_FILE[model_size], target_folder)
-    # download_file(MERGE_FILE[model_size], target_folder)
-    # download_file(GPT2_PRETRAINED_MODEL_ARCHIVE_MAP[model_size], target_folder)
+    download_file(CONFIG_FILE[model_size], target_folder)
+    download_file(VOCAB_FILE[model_size], target_folder)
+    download_file(MERGE_FILE[model_size], target_folder)
+    download_file(GPT2_PRETRAINED_MODEL_ARCHIVE_MAP[model_size], target_folder)
     if dataset is not None:
         assert dataset in ['multiref', 'dstc'], \
             'dataset has to be \'multiref\' or \'dstc\''
